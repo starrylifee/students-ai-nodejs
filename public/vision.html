@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vision 학습</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="container">
+    <h1>Vision 학습</h1>
+    
+    <!-- 이미지 미리보기를 상단에 배치 -->
+    <div class="image-preview-wrapper">
+        <img id="image-preview" alt="이미지를 업로드하면 여기에 표시됩니다.">
+    </div>
+    
+    <!-- 이미지 업로드 -->
+    <div>
+        <label for="image-upload">이미지 업로드:</label>
+        <input type="file" id="image-upload" accept="image/*">
+    </div>
+
+    <div>
+        <h3>🔍 분석 결과</h3>
+        <p id="analysis-result">분석 결과가 여기에 표시됩니다.</p>
+    </div>
+
+    <div id="action-buttons">
+        <button id="analyze-button">🔍 분석 시작</button>
+        <button id="back-button">🏠 처음으로 돌아가기</button>
+    </div>
+  </div>
+
+  <script src="vision.js"></script>
+</body>
+</html>

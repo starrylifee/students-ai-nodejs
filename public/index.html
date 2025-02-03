@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>활동 코드 입력</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="container">
+    <h1>활동 코드 입력</h1>
+    <form id="activity-form">
+      <label for="activity-code">활동 코드:</label>
+      <input type="text" id="activity-code" required>
+      
+      <label for="prompt-type">프롬프트 타입:</label>
+      <select id="prompt-type">
+        <option value="vision">Vision</option>
+        <option value="text">Text Generation</option>
+        <option value="image">Image Generation</option>
+        <option value="chatbot">Chatbot</option>
+      </select>
+
+      <button type="submit">확인</button>
+    </form>
+
+    <div id="result-container" style="display:none;">
+      <p id="prompt-preview"></p>
+      <button id="enter-button">입장</button>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

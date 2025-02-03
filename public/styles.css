@@ -1,0 +1,165 @@
+/* 🖥️ 기본 스타일 */
+body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+    background-color: #f4f4f4;
+    margin: 0;
+    padding: 0;
+    color: #333;
+}
+
+/* 📦 메인 컨테이너 */
+.container {
+    max-width: 800px;
+    margin: 50px auto;
+    padding: 20px;
+    background-color: #fff;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
+}
+
+/* 🏷️ 제목 스타일 */
+.container h1 {
+    font-size: 2rem;
+    margin-bottom: 20px;
+    color: #007bff;
+}
+
+/* 📤 파일 업로드 스타일 (Vision) */
+#image-upload {
+    display: block;
+    margin: 10px auto;
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+}
+
+/* 🖼️ 이미지 미리보기 */
+#image-preview {
+    max-width: 100%;
+    height: auto;
+    border-radius: 10px;
+    margin-top: 10px;
+}
+
+/* 🎨 형용사 선택 영역 (Image) */
+#adjectives-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+
+.adjective {
+    padding: 8px 12px;
+    border: 1px solid #007bff;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.adjective.selected {
+    background-color: #007bff;
+    color: white;
+}
+
+/* 📜 입력 영역 (Text, Chatbot) */
+textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    resize: vertical;
+    font-size: 1rem;
+    margin-top: 10px;
+}
+
+/* 🗨️ 채팅 로그 스타일 (Chatbot) */
+#chat-log {
+    border: 1px solid #ccc;
+    padding: 10px;
+    height: 300px;
+    overflow-y: auto;
+    background-color: #fff;
+    border-radius: 5px;
+}
+
+/* 🔘 버튼 스타일 */
+button {
+    padding: 10px 15px;
+    font-size: 1rem;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    background-color: #007bff;
+    color: white;
+    transition: background-color 0.3s ease;
+    width: 100%;
+    margin-top: 10px;
+}
+
+button:hover {
+    background-color: #0056b3;
+}
+
+/* 🔄 로딩 스피너 */
+#loading {
+    display: none;
+    font-size: 1.2rem;
+    color: #007bff;
+    margin-top: 20px;
+}
+
+/* 📊 분석 결과, 변환 결과 */
+#analysis-result, #ai-result {
+    font-size: 1.1rem;
+    font-weight: bold;
+    color: #007bff;
+    margin-top: 10px;
+}
+
+/* 🖼️ 생성된 이미지 프레임 */
+#image-frame {
+    width: 512px; /* 액자 크기 */
+    height: 512px; /* 액자 크기 */
+    border: 5px solid #ddd; /* 액자 테두리 */
+    border-radius: 10px;
+    overflow: hidden; /* 액자 밖으로 넘치는 이미지 숨김 */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 20px auto;
+    background-color: #f8f9fa; /* 액자 배경색 */
+}
+
+/* 🖼️ 생성된 이미지 */
+#generated-image {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: cover; /* 비율을 유지하면서 프레임 내에 맞춤 */
+    border-radius: 10px;
+}
+
+/* 🔹 반응형 디자인 */
+@media (max-width: 600px) {
+    .container {
+        width: 90%;
+        padding: 15px;
+    }
+}
+
+.image-preview-wrapper {
+    text-align: center;
+    margin-bottom: 20px;
+    border: 1px solid #ccc; /* 디버깅용 테두리 추가 */
+    padding: 10px;         /* 여유 공간 확보 */
+  }
+  
+  .image-preview-wrapper img {
+    display: inline-block;
+    max-width: 100%;
+    height: auto;
+  }
+  
