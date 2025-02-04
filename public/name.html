@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>이름 입력</title>
+  <!-- 기존 CSS 파일(styles.css) 연결 -->
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    /* 이름 입력 페이지 전용 추가 스타일 (필요에 따라 추가 가능) */
+    #name-form {
+      margin-top: 20px;
+    }
+
+    #student-name {
+      width: 100%;
+      padding: 10px;
+      font-size: 1rem;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>이름 입력</h1>
+    <form id="name-form">
+      <label for="student-name">이름:</label>
+      <input type="text" id="student-name" placeholder="이름을 입력하세요" required>
+      <button type="submit">다음</button>
+    </form>
+  </div>
+
+  <!-- name.js 연결 -->
+  <script src="name.js"></script>
+</body>
+</html>

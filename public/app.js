@@ -22,7 +22,8 @@ document.getElementById("activity-form").addEventListener("submit", async functi
             document.getElementById("result-container").style.display = "block";
             
             document.getElementById("enter-button").onclick = function() {
-                window.location.href = `/${promptType}.html?activity=${activityCode}`;
+                // 세부 활동 페이지로 바로 이동하는 대신 이름 입력 페이지로 리디렉션합니다.
+                window.location.href = `/name.html?activity=${activityCode}&prompt=${encodeURIComponent(result.prompt)}&promptType=${promptType}`;
             };
         } else {
             alert(result.error);
