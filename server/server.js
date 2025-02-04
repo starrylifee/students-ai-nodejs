@@ -23,6 +23,13 @@ const DATABASES = {
 
 const upload = multer({ storage: multer.memoryStorage() });
 
+/* ★★★★★ Socket.IO 초기화 시작 ★★★★★ */
+const http = require('http');                      // HTTP 서버 모듈 불러오기
+const server = http.createServer(app);             // Express 앱으로 HTTP 서버 생성
+const { Server } = require('socket.io');           // Socket.IO Server 생성자 불러오기
+const io = new Server(server);                     // Socket.IO 인스턴스 생성
+/* ★★★★★ Socket.IO 초기화 끝 ★★★★★ */
+
 /**
  * 🔹 `/check-activity` 엔드포인트 추가
  * - 클라이언트에서 활동 코드와 프롬프트 타입을 입력하면 호출
@@ -95,7 +102,7 @@ app.get('/get-showing-word', async (req, res) => {
  * - 실제 분석에 사용할 프롬프트는 Notion의 prompt 속성을 사용합니다.
  */
 app.post('/analyze-image', upload.single("image"), async (req, res) => {
-    const { activityCode } = req.body;
+    const { activityCode, studentName } = req.body;
 
     if (!activityCode) {
         return res.status(400).json({ success: false, error: "활동 코드가 필요합니다." });
@@ -146,6 +153,19 @@ app.post('/analyze-image', upload.single("image"), async (req, res) => {
         });
 
         const analysis = response.choices[0].message.content.trim();
+        /* ★★★★ 학생 활동 분석 후 업데이트 객체 생성 및 Socket.IO 이벤트 전송 시작 ★★★★ */
+        const updateObj = {
+            activityCode,                      // 학생이 입력한 활동 코드
+            promptType: "vision",              // 활동 타입 (vision)
+            studentName,       // 실제 학생 이름 데이터로 대체 필요
+            teacherPrompt: prompt,             // Notion에서 가져온 프롬프트 내용
+            inputImage: imageDataUrl,          // 업로드한 이미지의 Data URL
+            aiResult: analysis,                // 인공지능이 반환한 분석 결과
+            date: new Date().toISOString()     // 현재 날짜 및 시간
+        };
+        console.log("Emitting promptUpdated event with:", updateObj);
+        io.emit("promptUpdated", updateObj);
+        /* ★★★★ 학생 활동 분석 후 업데이트 객체 생성 및 Socket.IO 이벤트 전송 끝 ★★★★ */
         res.json({ success: true, analysis });
     } catch (error) {
         console.error("OpenAI Vision API 오류:", error.response ? error.response.data : error.message);
@@ -290,4 +310,5 @@ app.post('/generate-image', async (req, res) => {
  * 🔹 서버 실행
  */
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`✅ Server running on http://localhost:${PORT}`));
+server.listen(PORT, () => console.log(`✅ Server running on http://localhost:${PORT}`));
+
