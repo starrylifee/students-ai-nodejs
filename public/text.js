@@ -15,6 +15,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     // URL에서 활동 코드 가져오기
     const urlParams = new URLSearchParams(window.location.search);
     const activityCode = urlParams.get("activity");
+    const studentName = urlParams.get("name") || ""; // 학생 이름 추출 (없으면 빈 문자열)
+
 
     if (!activityCode) {
         alert("활동 코드가 누락되었습니다. 다시 시도해주세요.");
