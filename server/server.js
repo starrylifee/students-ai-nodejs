@@ -192,15 +192,15 @@ app.post('/analyze-image', upload.single("image"), async (req, res) => {
 
 
 app.post("/transform-text/:activityCode", async (req, res) => {
-    const { studentInput } = req.body;
-    const { activityCode } = req.params; // ✅ URL에서 activityCode 가져오기
+    const { studentInput, studentName } = req.body; // studentName 추가 (필요하다면)
+    const { activityCode } = req.params; // URL에서 activityCode 가져오기
 
     if (!studentInput) {
         return res.status(400).json({ success: false, error: "학생 입력이 필요합니다." });
     }
 
     try {
-        // Notion 데이터베이스에서 prompt 가져오기
+        // Notion 데이터베이스에서 prompt 가져오기 (Text Generation 데이터베이스 사용)
         const personaResponse = await notion.databases.query({
             database_id: DATABASES.text,
             filter: { property: "activity_code", rich_text: { equals: activityCode } },
@@ -222,6 +222,35 @@ app.post("/transform-text/:activityCode", async (req, res) => {
         });
 
         const transformedText = openaiResponse.choices[0].message.content.trim();
+
+        // 업데이트 객체 생성 (Text Generation)
+        const updateObj = {
+            activityCode,                      // 활동 코드
+            promptType: "text",                // 프롬프트 타입 (text)
+            studentName: studentName || "",     // 학생 이름 (필요 시)
+            teacherPrompt: prompt,             // Notion에서 가져온 프롬프트
+            inputText: studentInput,           // 학생이 입력한 원본 텍스트
+            aiResult: transformedText,         // OpenAI가 생성한 텍스트 결과
+            date: new Date().toISOString()     // 현재 날짜 및 시간
+        };
+
+        console.log("Emitting promptUpdated event for Text Generation with:", updateObj);
+        // 학생용 서버 내 Socket.IO 이벤트 emit
+        io.emit("promptUpdated", updateObj);
+
+        // 교사용 서버로 HTTP POST 요청 보내기
+        try {
+            const teacherResponse = await fetch('https://port-0-teachers-ai-nodejs-m6oc1d66fae356ac.sel4.cloudtype.app/api/notify', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(updateObj)
+            });
+            const teacherResult = await teacherResponse.json();
+            console.log("Notification sent to Teacher Server (Text Generation):", teacherResult);
+        } catch (error) {
+            console.error("Error sending notification to Teacher Server (Text Generation):", error);
+        }
+
         res.json({ success: true, transformedText });
     } catch (error) {
         console.error("Error during text transformation:", error);
@@ -229,8 +258,9 @@ app.post("/transform-text/:activityCode", async (req, res) => {
     }
 });
 
+
 app.post("/chatbot/:activityCode", async (req, res) => {
-    const { conversationHistory, userMessage } = req.body;
+    const { conversationHistory, userMessage, studentName } = req.body;
     const { activityCode } = req.params; // URL 파라미터에서 활동 코드 가져오기
 
     if (!userMessage) {
@@ -240,7 +270,7 @@ app.post("/chatbot/:activityCode", async (req, res) => {
     console.log(`📡 Received chatbot request for activityCode: ${activityCode}`);
 
     try {
-        // Notion 데이터베이스에서 prompt 가져오기
+        // Notion 데이터베이스에서 prompt 가져오기 (Chatbot 데이터베이스 사용)
         const personaResponse = await notion.databases.query({
             database_id: DATABASES.chatbot,
             filter: { property: "activity_code", rich_text: { equals: activityCode } },
@@ -251,7 +281,6 @@ app.post("/chatbot/:activityCode", async (req, res) => {
         }
 
         const prompt = personaResponse.results[0].properties.prompt?.rich_text?.[0]?.text?.content || "프롬프트 없음";
-
         console.log(`🔹 Loaded persona prompt: ${prompt}`);
 
         // OpenAI API 호출
@@ -267,12 +296,41 @@ app.post("/chatbot/:activityCode", async (req, res) => {
         const botResponse = response.choices[0].message.content.trim();
         console.log("✅ OpenAI Response:", botResponse);
 
+        // 업데이트 객체 생성 (Chatbot)
+        const updateObj = {
+            activityCode,                      // 활동 코드
+            promptType: "chatbot",             // 프롬프트 타입 (chatbot)
+            studentName: studentName || "",     // 학생 이름 (필요 시)
+            studentView: prompt,               // Notion에서 가져온 초기 챗봇 프롬프트(또는 학생용 챗봇 뷰)
+            conversationHistory: conversationHistory || [],  // 대화 기록 배열
+            aiResult: botResponse,             // 챗봇의 응답 결과
+            date: new Date().toISOString()     // 현재 날짜 및 시간
+        };
+
+        console.log("Emitting promptUpdated event for Chatbot with:", updateObj);
+        // 학생용 서버 내 Socket.IO 이벤트 emit
+        io.emit("promptUpdated", updateObj);
+
+        // 교사용 서버로 HTTP POST 요청 보내기
+        try {
+            const teacherResponse = await fetch('https://port-0-teachers-ai-nodejs-m6oc1d66fae356ac.sel4.cloudtype.app/api/notify', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(updateObj)
+            });
+            const teacherResult = await teacherResponse.json();
+            console.log("Notification sent to Teacher Server (Chatbot):", teacherResult);
+        } catch (error) {
+            console.error("Error sending notification to Teacher Server (Chatbot):", error);
+        }
+
         res.json({ success: true, response: botResponse });
     } catch (error) {
         console.error("❌ Error during chatbot interaction:", error);
         res.status(500).json({ success: false, error: "챗봇 응답 실패" });
     }
 });
+
 
 app.get('/get-image-prompt', async (req, res) => {
     const { activityCode } = req.query;
@@ -299,12 +357,14 @@ app.get('/get-image-prompt', async (req, res) => {
 });
 
 app.post('/generate-image', async (req, res) => {
-    const { prompt, adjectives } = req.body;
+    // 추가로 activityCode와 studentName를 요청 본문에서 받습니다.
+    const { prompt, adjectives, activityCode, studentName } = req.body;
 
-    if (!prompt || adjectives.length === 0) {
-        return res.status(400).json({ success: false, error: "프롬프트 또는 형용사가 필요합니다." });
+    if (!prompt || !adjectives || adjectives.length === 0 || !activityCode) {
+        return res.status(400).json({ success: false, error: "프롬프트, 형용사, 그리고 활동 코드가 필요합니다." });
     }
 
+    // 최종 프롬프트 구성: 형용사 목록과 원본 프롬프트를 결합
     const finalPrompt = `${adjectives.join(", ")} ${prompt}`;
 
     try {
@@ -314,12 +374,43 @@ app.post('/generate-image', async (req, res) => {
             size: "1024x1024",
         });
 
-        res.json({ success: true, imageUrl: response.data[0].url });
+        const imageUrl = response.data[0].url;  // 생성된 이미지 URL
+
+        // 업데이트 객체 생성 (이미지 생성용)
+        const updateObj = {
+            activityCode,                  // 학생이 입력한 활동 코드
+            promptType: "image",           // 이미지 생성 타입
+            studentName: studentName || "",// 학생 이름 (클라이언트에서 전달된 값)
+            teacherPrompt: prompt,         // Notion에서 가져온 혹은 학생이 입력한 원본 프롬프트
+            adjectives: adjectives.join(", "),  // 형용사 목록 (문자열로 결합)
+            aiImage: imageUrl,             // 생성된 이미지의 URL (교사용 모니터링에서는 AI 결과로 사용)
+            date: new Date().toISOString() // 현재 날짜 및 시간
+        };
+
+        console.log("Emitting promptUpdated event for Image Generation with:", updateObj);
+        // 학생용 서버 내 Socket.IO 이벤트 emit (필요 시)
+        io.emit("promptUpdated", updateObj);
+        
+        // 추가: 교사용 서버로 HTTP POST 요청 보내기
+        try {
+            const teacherResponse = await fetch('https://port-0-teachers-ai-nodejs-m6oc1d66fae356ac.sel4.cloudtype.app/api/notify', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(updateObj)
+            });
+            const teacherResult = await teacherResponse.json();
+            console.log("Notification sent to Teacher Server (Image Generation):", teacherResult);
+        } catch (error) {
+            console.error("Error sending notification to Teacher Server (Image Generation):", error);
+        }
+
+        res.json({ success: true, imageUrl });
     } catch (error) {
         console.error("Error generating image:", error);
         res.status(500).json({ success: false, error: "이미지 생성 실패" });
     }
 });
+
 
 
 
