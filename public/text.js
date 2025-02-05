@@ -42,7 +42,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             const response = await fetch(`/transform-text/${activityCode}`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ studentInput }), // ✅ activityCode는 URL에 포함
+                body: JSON.stringify({ studentInput, studentName }), // ✅ activityCode는 URL에 포함
             });
 
             console.log("Fetch request sent, waiting for response...");

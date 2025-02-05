@@ -70,7 +70,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             const response = await fetch("/generate-image", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ activityCode, prompt, adjectives: selectedAdjectives }),
+                body: JSON.stringify({ activityCode, prompt, adjectives: selectedAdjectives, studentName }),
             });
 
             const result = await response.json();
