@@ -153,25 +153,42 @@ app.post('/analyze-image', upload.single("image"), async (req, res) => {
         });
 
         const analysis = response.choices[0].message.content.trim();
-        /* ★★★★ 학생 활동 분석 후 업데이트 객체 생성 및 Socket.IO 이벤트 전송 시작 ★★★★ */
+
+        // 학생 활동 분석 후 업데이트 객체 생성
         const updateObj = {
             activityCode,                      // 학생이 입력한 활동 코드
             promptType: "vision",              // 활동 타입 (vision)
-            studentName,       // 실제 학생 이름 데이터로 대체 필요
+            studentName,                       // 학생 이름
             teacherPrompt: prompt,             // Notion에서 가져온 프롬프트 내용
             inputImage: imageDataUrl,          // 업로드한 이미지의 Data URL
             aiResult: analysis,                // 인공지능이 반환한 분석 결과
             date: new Date().toISOString()     // 현재 날짜 및 시간
         };
+
         console.log("Emitting promptUpdated event with:", updateObj);
+        // 학생용 서버 내 Socket.IO 이벤트 emit
         io.emit("promptUpdated", updateObj);
-        /* ★★★★ 학생 활동 분석 후 업데이트 객체 생성 및 Socket.IO 이벤트 전송 끝 ★★★★ */
+        
+        // 추가: 교사용 서버로 HTTP POST 요청 보내기
+        try {
+            const teacherResponse = await fetch('https://port-0-teachers-ai-nodejs-m6oc1d66fae356ac.sel4.cloudtype.app/api/notify', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(updateObj)
+            });
+            const teacherResult = await teacherResponse.json();
+            console.log("Notification sent to Teacher Server:", teacherResult);
+        } catch (error) {
+            console.error("Error sending notification to Teacher Server:", error);
+        }
+        
         res.json({ success: true, analysis });
     } catch (error) {
         console.error("OpenAI Vision API 오류:", error.response ? error.response.data : error.message);
         res.status(500).json({ success: false, error: "이미지 분석 실패" });
     }
 });
+
 
 
 app.post("/transform-text/:activityCode", async (req, res) => {
