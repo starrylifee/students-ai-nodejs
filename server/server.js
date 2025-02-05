@@ -270,7 +270,7 @@ app.post("/chatbot/:activityCode", async (req, res) => {
     console.log(`📡 Received chatbot request for activityCode: ${activityCode}`);
 
     try {
-        // Notion 데이터베이스에서 prompt 가져오기 (Chatbot 데이터베이스 사용)
+        // Notion 데이터베이스에서 prompt와 student_view 가져오기 (Chatbot 데이터베이스 사용)
         const personaResponse = await notion.databases.query({
             database_id: DATABASES.chatbot,
             filter: { property: "activity_code", rich_text: { equals: activityCode } },
@@ -280,11 +280,16 @@ app.post("/chatbot/:activityCode", async (req, res) => {
             return res.status(404).json({ success: false, error: "해당 활동 코드에 대한 프롬프트를 찾을 수 없습니다." });
         }
 
+        // 교사용 프롬프트 (예: teacherPrompt)
         const prompt = personaResponse.results[0].properties.prompt?.rich_text?.[0]?.text?.content || "프롬프트 없음";
+        // 학생용 챗봇 뷰 (예: student_view) - 이 값을 사용해야 학생용 챗봇 화면이 올바르게 표시됩니다.
+        const studentView = personaResponse.results[0].properties.student_view?.rich_text?.[0]?.text?.content || "";
+
         console.log(`🔹 Loaded persona prompt: ${prompt}`);
+        console.log(`🔹 Loaded student view: ${studentView}`);
 
         // OpenAI API 호출
-        const response = await openai.chat.completions.create({
+        const openaiResponse = await openai.chat.completions.create({
             model: "gpt-4o-mini",
             messages: [
                 { role: "system", content: `프롬프트: ${prompt}` },
@@ -293,15 +298,15 @@ app.post("/chatbot/:activityCode", async (req, res) => {
             ],
         });
 
-        const botResponse = response.choices[0].message.content.trim();
+        const botResponse = openaiResponse.choices[0].message.content.trim();
         console.log("✅ OpenAI Response:", botResponse);
 
         // 업데이트 객체 생성 (Chatbot)
         const updateObj = {
             activityCode,                      // 활동 코드
             promptType: "chatbot",             // 프롬프트 타입 (chatbot)
-            studentName: studentName || "",     // 학생 이름 (필요 시)
-            studentView: prompt,               // Notion에서 가져온 초기 챗봇 프롬프트(또는 학생용 챗봇 뷰)
+            studentName: studentName || "",     // 학생 이름 (입력된 값 그대로)
+            studentView: studentView,          // Notion에서 가져온 학생용 챗봇 뷰
             conversationHistory: conversationHistory || [],  // 대화 기록 배열
             aiResult: botResponse,             // 챗봇의 응답 결과
             date: new Date().toISOString()     // 현재 날짜 및 시간
@@ -330,6 +335,7 @@ app.post("/chatbot/:activityCode", async (req, res) => {
         res.status(500).json({ success: false, error: "챗봇 응답 실패" });
     }
 });
+
 
 
 app.get('/get-image-prompt', async (req, res) => {
