@@ -52,7 +52,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             const response = await fetch(`/chatbot/${activityCode}`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ conversationHistory, userMessage: message }),
+                body: JSON.stringify({ conversationHistory, userMessage: message, studentName }),
             });
 
             if (!response.ok) {
