@@ -3,6 +3,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     const urlParams = new URLSearchParams(window.location.search);
     const activityCode = urlParams.get("activity");
+    const studentName = urlParams.get("name") || ""; // 학생 이름 추출 (없으면 빈 문자열)
 
     if (!activityCode) {
         alert("활동 코드가 없습니다.");
@@ -16,9 +17,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         // Notion에서 프롬프트 및 형용사 가져오기
         const response = await fetch(`/get-image-prompt?activityCode=${activityCode}`);
         const result = await response.json();
-        const studentName = urlParams.get("name") || ""; // 학생 이름 추출 (없으면 빈 문자열)
-
-
+        
         if (result.success) {
             document.getElementById("prompt-text").innerText = `📌 활동 코드: ${activityCode}\n📝 ${result.prompt}`;
 
